@@ -14,8 +14,8 @@ const colorMap = {
 };
 
 const Board = ({ cells, onCellClick }) => {
-  const getCellDisplay = (row, column, rowSize) => {
-    const cellWidth = 100 / rowSize;
+  const getCellDisplay = (row, column) => {
+    const cellWidth = 100 / 9;
     const xOffset = cellWidth * column;
     const yOffset = cellWidth * row;
     return {
@@ -62,19 +62,25 @@ const Board = ({ cells, onCellClick }) => {
   const renderCells = () => {
     const rects = [];
     cells.forEach(cell => {
-      let display = getCellDisplay(cell.row, cell.col, 9);
+      let display = getCellDisplay(cell.row, cell.col);
       rects.push(
-        <rect
-          key={`${cell.row}${cell.col}`}
-          x={display.x}
-          y={display.y}
-          width={display.width}
-          height={display.height}
-          stroke="black"
-          strokeWidth="0.5"
-          fill={colorMap[cell.value]}
-          onClick={() => onCellClick(cell)}
-        />
+        <g key={`${cell.row}${cell.col}`} onClick={() => onCellClick(cell)}>
+          <circle
+            cx={display.x + display.width / 2}
+            cy={display.y + display.width / 2}
+            r={display.width / 2 - 0.75}
+            fill={colorMap[cell.value]}
+          />
+          <rect
+            x={display.x}
+            y={display.y}
+            width={display.width}
+            height={display.height}
+            fill="transparent"
+            stroke="black"
+            strokeWidth="0.5"
+          />
+        </g>
       );
     });
     return rects;
@@ -82,6 +88,8 @@ const Board = ({ cells, onCellClick }) => {
 
   return (
     <svg
+      width="100%"
+      height="100%"
       viewBox="0 0 100 100"
       overflow="visible"
       xmlns="http://www.w3.org/2000/svg"

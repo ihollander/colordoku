@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Board from "./components/board/Board";
+import ColorPicker from "./components/picker/ColorPicker";
 
 const board = [
   [5, 3, 0, 0, 7, 0, 0, 0, 0],
@@ -52,9 +53,9 @@ const App = () => {
   };
 
   const gameWon = () => {
-    for (let i = 0, l = 9; i < l; i++) {
-      let row = cells.filter(c => c.row === i);
+    for (let i = 0; i < 9; i++) {
       // all x values for the same y value are a unique set of 1-9
+      let row = cells.filter(c => c.row === i);
       if (!validGroup(row)) return false;
 
       // all y values for the same x value are a unique set of 1-9
@@ -81,8 +82,11 @@ const App = () => {
   const [cells, setCells] = useState(setInitalBoardState(board));
 
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <Board cells={cells} onCellClick={onCellClick} />
+    <div style={{ minWidth: "600px", margin: "10px auto" }}>
+      <div style={{ display: "flex", margin: "0 20px" }}>
+        <Board cells={cells} onCellClick={onCellClick} />
+        <ColorPicker />
+      </div>
       <button
         onClick={() => (gameWon() ? alert("You won yay") : alert("Hm nope."))}
       >
