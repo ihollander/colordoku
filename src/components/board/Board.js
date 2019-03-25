@@ -1,16 +1,4 @@
-import React, { useState } from "react";
-
-const board = [
-  [5, 3, 0, 0, 7, 0, 0, 0, 0],
-  [6, 0, 0, 1, 9, 5, 0, 0, 0],
-  [0, 9, 8, 0, 0, 0, 0, 6, 0],
-  [8, 0, 0, 0, 6, 0, 0, 0, 3],
-  [4, 0, 0, 8, 0, 3, 0, 0, 1],
-  [7, 0, 0, 0, 2, 0, 0, 0, 6],
-  [0, 6, 0, 0, 0, 0, 2, 8, 0],
-  [0, 0, 0, 4, 1, 9, 0, 0, 5],
-  [0, 0, 0, 0, 8, 0, 0, 7, 9]
-];
+import React from "react";
 
 const colorMap = {
   0: "#fff",
@@ -25,23 +13,7 @@ const colorMap = {
   9: "#4c1b74" // purple
 };
 
-function Board() {
-  const setInitalBoardState = board => {
-    const cells = [];
-    for (let x = 0, xs = board.length; x < xs; x++) {
-      for (let y = 0, ys = board[x].length; y < ys; y++) {
-        cells.push({
-          value: board[x][y],
-          row: x,
-          col: y
-        });
-      }
-    }
-    return cells;
-  };
-
-  const [cells, setCells] = useState(setInitalBoardState(board));
-
+const Board = ({ cells, onCellClick }) => {
   const getCellDisplay = (row, column, rowSize) => {
     const cellWidth = 100 / rowSize;
     const xOffset = cellWidth * column;
@@ -108,13 +80,6 @@ function Board() {
     return rects;
   };
 
-  const onCellClick = clickedCell => {
-    const newCells = cells.map(cell =>
-      cell === clickedCell ? { ...clickedCell, value: 8 } : cell
-    );
-    setCells(newCells);
-  };
-
   return (
     <svg
       viewBox="0 0 100 100"
@@ -126,6 +91,6 @@ function Board() {
       {renderDividers()}
     </svg>
   );
-}
+};
 
 export default Board;
