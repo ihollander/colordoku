@@ -13,7 +13,12 @@ const colorMap = {
   9: "#4c1b74" // purple
 };
 
-const Board = ({ cells, onCellClick }) => {
+const Board = ({
+  cells,
+  onCellClick,
+  handleMouseMove,
+  updateCursorVisibility
+}) => {
   const getCellDisplay = (row, column) => {
     const cellWidth = 100 / 9;
     const xOffset = cellWidth * column;
@@ -87,17 +92,21 @@ const Board = ({ cells, onCellClick }) => {
   };
 
   return (
-    <svg
-      width="100%"
-      height="100%"
-      viewBox="0 0 100 100"
-      overflow="visible"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ cursor: "pointer" }}
+    <div
+      style={{ cursor: "none", width: "60%" }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => updateCursorVisibility(true)}
+      onMouseLeave={() => updateCursorVisibility(false)}
     >
-      {renderCells()}
-      {renderDividers()}
-    </svg>
+      <svg
+        viewBox="0 0 100 100"
+        overflow="visible"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {renderCells()}
+        {renderDividers()}
+      </svg>
+    </div>
   );
 };
 

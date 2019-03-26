@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Board from "./components/board/Board";
 import ColorPicker from "./components/picker/ColorPicker";
+import Cursor from "./components/picker/Cursor";
 
 const board = [
   [5, 3, 0, 0, 7, 0, 0, 0, 0],
@@ -15,29 +16,29 @@ const board = [
 ];
 
 const App = () => {
-  const setInitalBoardState = board => {
+  const arrayToCells = boardArray => {
     const cells = [];
-    for (let x = 0, xs = board.length; x < xs; x++) {
-      for (let y = 0, ys = board[x].length; y < ys; y++) {
+    for (let x = 0, xs = boardArray.length; x < xs; x++) {
+      for (let y = 0, ys = boardArray[x].length; y < ys; y++) {
         cells.push({
-          value: board[x][y],
+          value: boardArray[x][y],
           row: x,
           col: y,
-          locked: board[x][y] !== 0
+          locked: boardArray[x][y] !== 0
         });
       }
     }
     return cells;
   };
 
-  const onCellClick = clickedCell => {
-    const newValue = (clickedCell.value + 1) % 10;
-    const newCells = cells.map(cell =>
-      cell === clickedCell && !cell.locked
-        ? { ...clickedCell, value: newValue }
-        : cell
-    );
-    setCells(newCells);
+  // game logic
+  const colorsRemaining = () => {
+    let colorObj = {};
+    for (let i = 1; i < 10; i++) {
+      colorObj[i] = 9;
+    }
+    cells.forEach(cell => colorObj[cell.value]--);
+    return colorObj;
   };
 
   const validGroup = cells => {
@@ -79,14 +80,70 @@ const App = () => {
     return true;
   };
 
-  const [cells, setCells] = useState(setInitalBoardState(board));
+  // event handlers
+  const onCellClick = clickedCell => {
+    // const newValue = (clickedCell.value + 1) % 10;
+    const newCells = cells.map(cell =>
+      cell === clickedCell && !cell.locked
+        ? { ...clickedCell, value: cursor.color }
+        : cell
+    );
+    setCells(newCells);
+  };
+
+  const handleCursorVisibility = visible => setCursor({ ...cursor, visible });
+
+  const handleMouseMove = ({ pageX: x, pageY: y }) =>
+    setCursor({ ...cursor, x, y });
+
+  const handlePickerClick = color => setCursor({ ...cursor, color });
+
+  const handleNewGameClick = () => {
+    fetch("https://sugoku2.herokuapp.com/board?difficulty=random")
+      .then(r => r.json())
+      .then(r => {
+        const newCells = arrayToCells(r.board);
+        setCells(newCells);
+      })
+      .catch(console.error);
+  };
+
+  // state things
+  const [cells, setCells] = useState(arrayToCells(board));
+  const [cursor, setCursor] = useState({
+    x: 0,
+    y: 0,
+    color: 0,
+    visible: false
+  });
 
   return (
-    <div style={{ minWidth: "600px", margin: "10px auto" }}>
-      <div style={{ display: "flex", margin: "0 20px" }}>
-        <Board cells={cells} onCellClick={onCellClick} />
-        <ColorPicker />
+    <div style={{ width: "75%", margin: "10px auto" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-around",
+          alignItems: "flex-start"
+        }}
+      >
+        <Board
+          cells={cells}
+          onCellClick={onCellClick}
+          handleMouseMove={handleMouseMove}
+          updateCursorVisibility={handleCursorVisibility}
+        />
+        <ColorPicker
+          onCellClick={handlePickerClick}
+          counter={colorsRemaining()}
+        />
+        <Cursor
+          x={cursor.x}
+          y={cursor.y}
+          color={cursor.color}
+          visible={cursor.visible}
+        />
       </div>
+      <button onClick={handleNewGameClick}>New Game</button>
       <button
         onClick={() => (gameWon() ? alert("You won yay") : alert("Hm nope."))}
       >
