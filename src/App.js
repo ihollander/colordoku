@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Board from "./components/board/Board";
 import ColorPicker from "./components/picker/ColorPicker";
-import Cursor from "./components/picker/Cursor";
+import Cursor from "./components/board/Cursor";
+import NewGame from "./components/tools/NewGame";
+import { colorsRemaining, gameWon } from "./helpers/gameLogicHelpers";
 
 const board = [
   [5, 3, 0, 0, 7, 0, 0, 0, 0],
@@ -16,6 +18,7 @@ const board = [
 ];
 
 const App = () => {
+  // helper
   const arrayToCells = boardArray => {
     const cells = [];
     for (let x = 0, xs = boardArray.length; x < xs; x++) {
@@ -31,62 +34,19 @@ const App = () => {
     return cells;
   };
 
-  // game logic
-  const colorsRemaining = () => {
-    let colorObj = {};
-    for (let i = 1; i < 10; i++) {
-      colorObj[i] = 9;
-    }
-    cells.forEach(cell => colorObj[cell.value]--);
-    return colorObj;
-  };
-
-  const validGroup = cells => {
-    const valid = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    cells = cells.map(c => c.value).sort();
-    if (
-      cells.length !== valid.length ||
-      cells.every((value, index) => value !== valid[index])
-    ) {
-      return false;
-    }
-    return true;
-  };
-
-  const gameWon = () => {
-    for (let i = 0; i < 9; i++) {
-      // all x values for the same y value are a unique set of 1-9
-      let row = cells.filter(c => c.row === i);
-      if (!validGroup(row)) return false;
-
-      // all y values for the same x value are a unique set of 1-9
-      let col = cells.filter(c => c.col === i);
-      if (!validGroup(col)) return false;
-
-      // all groups of 9 are a unique set of 1-9
-      let rowGroup = (i % 3) * 3;
-      let colGroup = Math.floor(i / 3) * 3;
-      let group = cells.filter(
-        c =>
-          c.row >= rowGroup &&
-          c.row < rowGroup + 3 &&
-          c.col >= colGroup &&
-          c.col < colGroup + 3
-      );
-
-      if (!validGroup(group)) return false;
-    }
-
-    return true;
-  };
-
   // event handlers
-  const onCellClick = clickedCell => {
-    // const newValue = (clickedCell.value + 1) % 10;
+  const handleCellClick = clickedCell => {
     const newCells = cells.map(cell =>
       cell === clickedCell && !cell.locked
         ? { ...clickedCell, value: cursor.color }
         : cell
+    );
+    setCells(newCells);
+  };
+
+  const handleReset = () => {
+    const newCells = cells.map(cell =>
+      cell.locked ? cell : { ...cell, value: 0 }
     );
     setCells(newCells);
   };
@@ -98,8 +58,8 @@ const App = () => {
 
   const handlePickerClick = color => setCursor({ ...cursor, color });
 
-  const handleNewGameClick = () => {
-    fetch("https://sugoku2.herokuapp.com/board?difficulty=random")
+  const handleNewGameClick = difficulty => {
+    fetch(`https://sugoku2.herokuapp.com/board?difficulty=${difficulty}`)
       .then(r => r.json())
       .then(r => {
         const newCells = arrayToCells(r.board);
@@ -128,13 +88,13 @@ const App = () => {
       >
         <Board
           cells={cells}
-          onCellClick={onCellClick}
+          onCellClick={handleCellClick}
           handleMouseMove={handleMouseMove}
           updateCursorVisibility={handleCursorVisibility}
         />
         <ColorPicker
           onCellClick={handlePickerClick}
-          counter={colorsRemaining()}
+          counter={colorsRemaining(cells)}
         />
         <Cursor
           x={cursor.x}
@@ -143,12 +103,15 @@ const App = () => {
           visible={cursor.visible}
         />
       </div>
-      <button onClick={handleNewGameClick}>New Game</button>
+      <NewGame onNewGameClick={handleNewGameClick} />
       <button
-        onClick={() => (gameWon() ? alert("You won yay") : alert("Hm nope."))}
+        onClick={() =>
+          gameWon(cells) ? alert("You won yay") : alert("Hm nope.")
+        }
       >
         Check Game
       </button>
+      <button onClick={handleReset}>Reset Game</button>
     </div>
   );
 };

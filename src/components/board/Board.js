@@ -1,17 +1,7 @@
 import React from "react";
-
-const colorMap = {
-  0: "#fff",
-  1: "#EB3323", // red
-  2: "#F0904C", // orange
-  3: "#F9D749", // yellow
-  4: "#85F94C", // green
-  5: "#1e6830", // dark green
-  6: "#73FAFC", // light blue
-  7: "#0033F4", // blue
-  8: "#cf81d6", // violet
-  9: "#4c1b74" // purple
-};
+import GridCell from "./GridCell";
+import GridLine from "./GridLine";
+import { getCellDisplay, colorMap } from "../../helpers/displayHelpers";
 
 const Board = ({
   cells,
@@ -19,76 +9,30 @@ const Board = ({
   handleMouseMove,
   updateCursorVisibility
 }) => {
-  const getCellDisplay = (row, column) => {
-    const cellWidth = 100 / 9;
-    const xOffset = cellWidth * column;
-    const yOffset = cellWidth * row;
-    return {
-      x: xOffset,
-      y: yOffset,
-      width: cellWidth,
-      height: cellWidth
-    };
-  };
-
+  // render
   const renderDividers = () => {
-    const lines = [];
-    for (let x = 0; x < 4; x++) {
-      let offset = (x * 100) / 3;
-      lines.push(
-        <line
-          key={`lineX${x}`}
-          x1={offset}
-          y1={0}
-          x2={offset}
-          y2={100}
-          stroke="black"
-          strokeWidth="1"
-        />
-      );
+    const dividers = [];
+    for (let i = 0; i <= 3; i++) {
+      let offset = (i * 100) / 3;
+      dividers.push(<GridLine offset={offset} direction="horizontal" />);
+      dividers.push(<GridLine offset={offset} direction="vertical" />);
     }
-    for (let y = 0; y < 4; y++) {
-      let offset = (y * 100) / 3;
-      lines.push(
-        <line
-          key={`lineY${y}`}
-          x1={0}
-          y1={offset}
-          x2={100}
-          y2={offset}
-          stroke="black"
-          strokeWidth="1"
-        />
-      );
-    }
-    return lines;
+    return dividers;
   };
 
   const renderCells = () => {
-    const rects = [];
-    cells.forEach(cell => {
+    return cells.map(cell => {
       let display = getCellDisplay(cell.row, cell.col);
-      rects.push(
-        <g key={`${cell.row}${cell.col}`} onClick={() => onCellClick(cell)}>
-          <circle
-            cx={display.x + display.width / 2}
-            cy={display.y + display.width / 2}
-            r={display.width / 2 - 0.75}
-            fill={colorMap[cell.value]}
-          />
-          <rect
-            x={display.x}
-            y={display.y}
-            width={display.width}
-            height={display.height}
-            fill="transparent"
-            stroke="black"
-            strokeWidth="0.5"
-          />
-        </g>
+      return (
+        <GridCell
+          key={`${cell.row}${cell.col}`}
+          color={colorMap[cell.value]}
+          backgroundColor="transparent"
+          onCellClick={() => onCellClick(cell)}
+          display={display}
+        />
       );
     });
-    return rects;
   };
 
   return (
