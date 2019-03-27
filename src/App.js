@@ -1,21 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Board from "./components/board/Board";
 import ColorPicker from "./components/picker/ColorPicker";
 import Cursor from "./components/board/Cursor";
 import NewGame from "./components/tools/NewGame";
+import GameTools from "./components/tools/GameTools";
 import { colorsRemaining, gameWon } from "./helpers/gameLogicHelpers";
-
-const board = [
-  [5, 3, 0, 0, 7, 0, 0, 0, 0],
-  [6, 0, 0, 1, 9, 5, 0, 0, 0],
-  [0, 9, 8, 0, 0, 0, 0, 6, 0],
-  [8, 0, 0, 0, 6, 0, 0, 0, 3],
-  [4, 0, 0, 8, 0, 3, 0, 0, 1],
-  [7, 0, 0, 0, 2, 0, 0, 0, 6],
-  [0, 6, 0, 0, 0, 0, 2, 8, 0],
-  [0, 0, 0, 4, 1, 9, 0, 0, 5],
-  [0, 0, 0, 0, 8, 0, 0, 7, 9]
-];
 
 const App = () => {
   // helper
@@ -34,6 +23,34 @@ const App = () => {
     return cells;
   };
 
+  // state hooks
+  const [difficulty, setDifficulty] = useState("random");
+  const [isLoading, setIsLoading] = useState(true);
+  const [cells, setCells] = useState([]);
+  const [cursor, setCursor] = useState({
+    x: 0,
+    y: 0,
+    color: 0,
+    visible: false
+  });
+
+  // effect hooks
+  useEffect(() => {
+    setIsLoading(true);
+    const fetchData = () => {
+      fetch(`https://sugoku2.herokuapp.com/board?difficulty=${difficulty}`)
+        .then(r => r.json())
+        .then(r => {
+          const newCells = arrayToCells(r.board);
+          setCells(newCells);
+          setIsLoading(false);
+        })
+        .catch(console.error);
+    };
+
+    fetchData();
+  }, [difficulty]);
+
   // event handlers
   const handleCellClick = clickedCell => {
     const newCells = cells.map(cell =>
@@ -51,6 +68,9 @@ const App = () => {
     setCells(newCells);
   };
 
+  const handleCheckGame = () =>
+    gameWon(cells) ? alert("You won yay") : alert("Hm nope.");
+
   const handleCursorVisibility = visible => setCursor({ ...cursor, visible });
 
   const handleMouseMove = ({ pageX: x, pageY: y }) =>
@@ -58,60 +78,43 @@ const App = () => {
 
   const handlePickerClick = color => setCursor({ ...cursor, color });
 
-  const handleNewGameClick = difficulty => {
-    fetch(`https://sugoku2.herokuapp.com/board?difficulty=${difficulty}`)
-      .then(r => r.json())
-      .then(r => {
-        const newCells = arrayToCells(r.board);
-        setCells(newCells);
-      })
-      .catch(console.error);
-  };
-
-  // state things
-  const [cells, setCells] = useState(arrayToCells(board));
-  const [cursor, setCursor] = useState({
-    x: 0,
-    y: 0,
-    color: 0,
-    visible: false
-  });
+  const handleNewGameClick = difficulty => setDifficulty(difficulty);
 
   return (
     <div style={{ width: "75%", margin: "10px auto" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-around",
-          alignItems: "flex-start"
-        }}
-      >
-        <Board
-          cells={cells}
-          onCellClick={handleCellClick}
-          handleMouseMove={handleMouseMove}
-          updateCursorVisibility={handleCursorVisibility}
-        />
-        <ColorPicker
-          onCellClick={handlePickerClick}
-          counter={colorsRemaining(cells)}
-        />
-        <Cursor
-          x={cursor.x}
-          y={cursor.y}
-          color={cursor.color}
-          visible={cursor.visible}
-        />
-      </div>
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-around",
+            alignItems: "flex-start"
+          }}
+        >
+          <Board
+            cells={cells}
+            onCellClick={handleCellClick}
+            handleMouseMove={handleMouseMove}
+            updateCursorVisibility={handleCursorVisibility}
+          />
+          <ColorPicker
+            onCellClick={handlePickerClick}
+            counter={colorsRemaining(cells)}
+          />
+          <Cursor
+            x={cursor.x}
+            y={cursor.y}
+            color={cursor.color}
+            visible={cursor.visible}
+          />
+        </div>
+      )}
       <NewGame onNewGameClick={handleNewGameClick} />
-      <button
-        onClick={() =>
-          gameWon(cells) ? alert("You won yay") : alert("Hm nope.")
-        }
-      >
-        Check Game
-      </button>
-      <button onClick={handleReset}>Reset Game</button>
+      <GameTools
+        onCheckGameClick={handleCheckGame}
+        onResetClick={handleReset}
+      />
     </div>
   );
 };
