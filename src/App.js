@@ -16,7 +16,8 @@ const App = () => {
           value: boardArray[x][y],
           row: x,
           col: y,
-          locked: boardArray[x][y] !== 0
+          locked: boardArray[x][y] !== 0,
+          pencilMarks: []
         });
       }
     }
@@ -24,9 +25,9 @@ const App = () => {
   };
 
   // state hooks
-  const [difficulty, setDifficulty] = useState("random");
   const [isLoading, setIsLoading] = useState(true);
   const [cells, setCells] = useState([]);
+  const [pencilMode, setPencilMode] = useState(false);
   const [cursor, setCursor] = useState({
     x: 0,
     y: 0,
@@ -34,36 +35,49 @@ const App = () => {
     visible: false
   });
 
+  const fetchData = difficulty => {
+    setIsLoading(true);
+    fetch(`https://sugoku2.herokuapp.com/board?difficulty=${difficulty}`)
+      .then(r => r.json())
+      .then(r => {
+        const newCells = arrayToCells(r.board);
+        setCells(newCells);
+        setIsLoading(false);
+      })
+      .catch(console.error);
+  };
+
   // effect hooks
   useEffect(() => {
-    setIsLoading(true);
-    const fetchData = () => {
-      fetch(`https://sugoku2.herokuapp.com/board?difficulty=${difficulty}`)
-        .then(r => r.json())
-        .then(r => {
-          const newCells = arrayToCells(r.board);
-          setCells(newCells);
-          setIsLoading(false);
-        })
-        .catch(console.error);
-    };
-
-    fetchData();
-  }, [difficulty]);
+    fetchData("random");
+  }, []);
 
   // event handlers
   const handleCellClick = clickedCell => {
-    const newCells = cells.map(cell =>
-      cell === clickedCell && !cell.locked
-        ? { ...clickedCell, value: cursor.color }
-        : cell
-    );
+    const newCells = cells.map(cell => {
+      if (cell !== clickedCell || cell.locked) return cell;
+
+      if (pencilMode) {
+        // if the pencil marks array includes the cursor color, remove it
+        if (cell.pencilMarks.find(m => m === cursor.color)) {
+          return {
+            ...cell,
+            pencilMarks: cell.pencilMarks.filter(m => m !== cursor.color)
+          };
+          // else add it
+        } else {
+          return { ...cell, pencilMarks: [...cell.pencilMarks, cursor.color] };
+        }
+      } else {
+        return { ...cell, value: cursor.color, pencilMarks: [] };
+      }
+    });
     setCells(newCells);
   };
 
   const handleReset = () => {
     const newCells = cells.map(cell =>
-      cell.locked ? cell : { ...cell, value: 0 }
+      cell.locked ? cell : { ...cell, value: 0, pencilMarks: [] }
     );
     setCells(newCells);
   };
@@ -78,10 +92,12 @@ const App = () => {
 
   const handlePickerClick = color => setCursor({ ...cursor, color });
 
-  const handleNewGameClick = difficulty => setDifficulty(difficulty);
+  const handleNewGameClick = difficulty => fetchData(difficulty);
+
+  const handlePencilMode = () => setPencilMode(!pencilMode);
 
   return (
-    <div style={{ width: "75%", margin: "10px auto" }}>
+    <div style={{ minWidth: "800px", width: "75%", margin: "10px auto" }}>
       {isLoading ? (
         <div>Loading...</div>
       ) : (
@@ -94,11 +110,13 @@ const App = () => {
         >
           <Board
             cells={cells}
+            cursorColor={cursor.color}
             onCellClick={handleCellClick}
             handleMouseMove={handleMouseMove}
             updateCursorVisibility={handleCursorVisibility}
           />
           <ColorPicker
+            onPencilMode={handlePencilMode}
             onCellClick={handlePickerClick}
             counter={colorsRemaining(cells)}
           />

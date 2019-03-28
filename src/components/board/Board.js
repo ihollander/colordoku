@@ -5,6 +5,7 @@ import { getCellDisplay, colorMap } from "../../helpers/displayHelpers";
 
 const Board = ({
   cells,
+  cursorColor,
   onCellClick,
   handleMouseMove,
   updateCursorVisibility
@@ -14,8 +15,12 @@ const Board = ({
     const dividers = [];
     for (let i = 0; i <= 3; i++) {
       let offset = (i * 100) / 3;
-      dividers.push(<GridLine offset={offset} direction="horizontal" />);
-      dividers.push(<GridLine offset={offset} direction="vertical" />);
+      dividers.push(
+        <GridLine key={`${i}-hor`} offset={offset} direction="horizontal" />
+      );
+      dividers.push(
+        <GridLine key={`${i}-ver`} offset={offset} direction="vertical" />
+      );
     }
     return dividers;
   };
@@ -26,10 +31,12 @@ const Board = ({
       return (
         <GridCell
           key={`${cell.row}${cell.col}`}
+          pencilMarks={cell.pencilMarks}
           color={colorMap[cell.value]}
           backgroundColor="transparent"
           onCellClick={() => onCellClick(cell)}
           display={display}
+          fade={cursorColor !== 0 && cell.value !== cursorColor}
         />
       );
     });

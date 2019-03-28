@@ -2,7 +2,7 @@ import React from "react";
 import GridCell from "../board/GridCell";
 import { colorMap, getCellDisplay } from "../../helpers/displayHelpers";
 
-const ColorPicker = ({ onCellClick, counter }) => {
+const ColorPicker = ({ onCellClick, onPencilMode, counter }) => {
   const renderCells = () => {
     const rects = [];
     for (let i = 0; i < 10; i++) {
@@ -18,9 +18,10 @@ const ColorPicker = ({ onCellClick, counter }) => {
           {i > 0 && (
             <text
               fontSize="4"
-              alignmentBaseline="hanging"
-              x={display.x + 4}
-              y={display.y + 4}
+              alignmentBaseline="central"
+              textAnchor="middle"
+              x={display.x + display.width / 2}
+              y={display.y + display.height / 2}
             >
               {counter[i]}
             </text>
@@ -40,6 +41,7 @@ const ColorPicker = ({ onCellClick, counter }) => {
       >
         {renderCells()}
       </svg>
+      <button onClick={onPencilMode}>Pencil Mode</button>
     </div>
   );
 };
