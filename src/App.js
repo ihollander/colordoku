@@ -57,7 +57,7 @@ const App = () => {
     const newCells = cells.map(cell => {
       if (cell !== clickedCell || cell.locked) return cell;
 
-      if (pencilMode) {
+      if (pencilMode && !cell.locked) {
         // if the pencil marks array includes the cursor color, remove it
         if (cell.pencilMarks.find(m => m === cursor.color)) {
           return {
@@ -108,21 +108,27 @@ const App = () => {
             alignItems: "flex-start"
           }}
         >
-          <Board
-            cells={cells}
-            cursorColor={cursor.color}
-            onCellClick={handleCellClick}
-            handleMouseMove={handleMouseMove}
-            updateCursorVisibility={handleCursorVisibility}
-          />
+          <div
+            style={{ cursor: "none", width: "60%" }}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={() => handleCursorVisibility(true)}
+            onMouseLeave={() => handleCursorVisibility(false)}
+          >
+            <Board
+              cells={cells}
+              cursorColor={cursor.color}
+              onCellClick={handleCellClick}
+              handleMouseMove={handleMouseMove}
+            />
+          </div>
           <ColorPicker
-            onPencilMode={handlePencilMode}
             onCellClick={handlePickerClick}
             counter={colorsRemaining(cells)}
           />
           <Cursor
             x={cursor.x}
             y={cursor.y}
+            pencilMode={pencilMode}
             color={cursor.color}
             visible={cursor.visible}
           />
@@ -130,6 +136,8 @@ const App = () => {
       )}
       <NewGame onNewGameClick={handleNewGameClick} />
       <GameTools
+        pencilMode={pencilMode}
+        onPencilMode={handlePencilMode}
         onCheckGameClick={handleCheckGame}
         onResetClick={handleReset}
       />

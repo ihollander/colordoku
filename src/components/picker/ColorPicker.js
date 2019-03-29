@@ -41,7 +41,6 @@ const ColorPicker = ({ onCellClick, onPencilMode, counter }) => {
       >
         {renderCells()}
       </svg>
-      <button onClick={onPencilMode}>Pencil Mode</button>
     </div>
   );
 };

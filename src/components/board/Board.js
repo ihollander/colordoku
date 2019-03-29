@@ -3,13 +3,7 @@ import GridCell from "./GridCell";
 import GridLine from "./GridLine";
 import { getCellDisplay, colorMap } from "../../helpers/displayHelpers";
 
-const Board = ({
-  cells,
-  cursorColor,
-  onCellClick,
-  handleMouseMove,
-  updateCursorVisibility
-}) => {
+const Board = ({ cells, cursorColor, onCellClick }) => {
   // render
   const renderDividers = () => {
     const dividers = [];
@@ -43,21 +37,14 @@ const Board = ({
   };
 
   return (
-    <div
-      style={{ cursor: "none", width: "60%" }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => updateCursorVisibility(true)}
-      onMouseLeave={() => updateCursorVisibility(false)}
+    <svg
+      viewBox="0 0 100 100"
+      overflow="visible"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      <svg
-        viewBox="0 0 100 100"
-        overflow="visible"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {renderCells()}
-        {renderDividers()}
-      </svg>
-    </div>
+      {renderCells()}
+      {renderDividers()}
+    </svg>
   );
 };
 
